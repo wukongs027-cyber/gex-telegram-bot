@@ -2,12 +2,9 @@ name: GEX Telegram Push
 
 on:
   schedule:
-    # 美东时间大约 9:45、10:30、13:00、14:30（UTC时间）
-    - cron: '45 13 * * 1-5'   # 9:45 ET
-    - cron: '30 14 * * 1-5'   # 10:30 ET
-    - cron: '0 17 * * 1-5'    # 13:00 ET
-    - cron: '30 18 * * 1-5'   # 14:30 ET
-  workflow_dispatch:          # 允许手动触发
+    # 每10分钟一次，仅周一到周五，覆盖美股交易时段（约 9:30-16:00 ET）
+    - cron: '*/10 13-20 * * 1-5'
+  workflow_dispatch:   # 保留手动触发
 
 jobs:
   push-gex:
