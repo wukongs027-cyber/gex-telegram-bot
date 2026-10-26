@@ -1,0 +1,31 @@
+name: GEX Telegram Push
+
+on:
+  schedule:
+    # 美东时间大约 9:45、10:30、13:00、14:30（UTC时间）
+    - cron: '45 13 * * 1-5'   # 9:45 ET
+    - cron: '30 14 * * 1-5'   # 10:30 ET
+    - cron: '0 17 * * 1-5'    # 13:00 ET
+    - cron: '30 18 * * 1-5'   # 14:30 ET
+  workflow_dispatch:          # 允许手动触发
+
+jobs:
+  push-gex:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests pytz
+
+      - name: Run GEX script
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python gex_telegram.py
