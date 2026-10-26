@@ -44,26 +44,43 @@ def get_gex(ticker: str) -> dict:
 def build_message() -> str:
     et_now = datetime.now(pytz.timezone("America/New_York"))
     time_str = et_now.strftime("%Y-%m-%d %H:%M ET")
+    weekday = et_now.strftime("%A")
 
-    spy = get_gex("SPY")
-    qqq = get_gex("QQQ")
+    tickers = ["SPY", "QQQ", "AAPL", "NVDA"]
+    results = {t: get_gex(t) for t in tickers}
 
-    msg = f"<b>📊 日内期权结构 · {time_str}</b>\n\n"
+    msg = f"<b>📊 日内期权结构</b>\n"
+    msg += f"<code>{time_str}  ({weekday})</code>\n"
+    msg += "────────────────\n\n"
 
-    for name, data in [("SPY", spy), ("QQQ", qqq)]:
+    for name in tickers:
+        data = results[name]
         if "error" in data:
-            msg += f"<b>{name}</b>\n获取失败: {data['error']}\n\n"
+            msg += f"<b>{name}</b>  获取失败\n<code>{data['error']}</code>\n\n"
             continue
 
-        regime = str(data.get("regime", "—")).upper()
-        gex_sign = "🟢 正Gamma" if "POSITIVE" in regime else ("🔴 负Gamma" if "NEGATIVE" in regime else "⚪")
+        spot = data.get("spot", "—")
+        net_gex = data.get("net_gex", "—")
+        call_wall = data.get("call_wall", "—")
+        put_wall = data.get("put_wall", "—")
+        flip = data.get("flip", "—")
+        regime = str(data.get("regime", "")).upper()
 
-        msg += f"<b>{name}</b>  现价 <code>{data.get('spot')}</code>\n"
-        msg += f"Net GEX: <code>{data.get('net_gex')}</code>  {gex_sign}\n"
-        msg += f"Call Wall: <code>{data.get('call_wall')}</code>  |  Put Wall: <code>{data.get('put_wall')}</code>\n"
-        msg += f"Gamma Flip: <code>{data.get('flip')}</code>\n\n"
+        if "POSITIVE" in regime:
+            gex_icon = "🟢 正Gamma（偏震荡）"
+        elif "NEGATIVE" in regime:
+            gex_icon = "🔴 负Gamma（易加速）"
+        else:
+            gex_icon = "⚪ 状态未知"
 
-    msg += "————————————\n仅供个人学习参考，不构成任何投资建议"
+        msg += f"<b>{name}</b>   现价 <code>{spot}</code>\n"
+        msg += f"{gex_icon}\n"
+        msg += f"Net GEX: <code>{net_gex}</code>\n"
+        msg += f"Call Wall: <code>{call_wall}</code>   Put Wall: <code>{put_wall}</code>\n"
+        msg += f"Gamma Flip: <code>{flip}</code>\n\n"
+
+    msg += "────────────────\n"
+    msg += "<i>仅供个人学习参考，不构成投资建议</i>"
     return msg
 
 if __name__ == "__main__":
